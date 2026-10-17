@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExamForge · Document to mock test</title>
+<script>
+  // Apply theme before paint to avoid a flash
+  try { if (localStorage.theme === 'dark' || (!localStorage.theme && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Source+Serif+4:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: {
+    fontFamily: { head: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'], body: ['Inter', 'system-ui', 'sans-serif'], paper: ['"Source Serif 4"', 'Georgia', 'serif'] },
+    colors: { ink: '#14213D', sheet: '#EEF1F5', ultra: '#2A4BD7' }
+  } } };
+</script>
+<style>
+  body { transition: background-color .25s, color .25s; }
+  .bubble { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 9999px; border: 2px solid currentColor; font: 600 .8rem Inter, sans-serif; transition: all .15s; }
+  .opt { transition: border-color .15s, background-color .15s, transform .1s; }
+  .opt:active { transform: scale(.995); }
+  .opt.sel { border-color: #2A4BD7; background: rgba(42,75,215,.08); }
+  .opt.sel .bubble { background: #2A4BD7; border-color: #2A4BD7; color: #fff; }
+  .opt.ok { border-color: #1E8E5A; background: rgba(30,142,90,.1); }
+  .opt.ok .bubble { background: #1E8E5A; border-color: #1E8E5A; color: #fff; }
+  .opt.bad { border-color: #C73E3E; background: rgba(199,62,62,.1); }
+  .opt.bad .bubble { background: #C73E3E; border-color: #C73E3E; color: #fff; }
+  .spin { animation: spin 0.9s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+  .fade { animation: fade .25s ease-out; } @keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+  @media (prefers-reduced-motion: reduce) { .fade, .spin { animation: none; } * { transition: none !important; } }
+  :focus-visible { outline: 2px solid #2A4BD7; outline-offset: 2px; }
+</style>
+</head>
+<body class="bg-sheet text-ink dark:bg-[#0E1320] dark:text-slate-100 font-body min-h-screen antialiased">
+
+<header class="max-w-4xl mx-auto px-4 pt-5 flex items-center justify-between">
+  <button onclick="location.reload()" class="font-head font-bold text-xl tracking-tight">ExamForge</button>
+  <div class="flex items-center gap-2">
+    <button id="shareBtn" class="text-sm px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800">Share app</button>
+    <button id="themeBtn" aria-label="Toggle dark mode" class="w-9 h-9 grid place-items-center rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800">
+      <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="w-4 h-4 dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- UPLOAD -->
+  <section id="v-upload" class="fade">
+    <h1 class="font-head font-bold text-3xl sm:text-5xl leading-tight max-w-2xl">Turn any document into an exam-grade mock test.</h1>
+    <p class="mt-3 text-slate-600 dark:text-slate-400 max-w-xl">Upload notes, a chapter or an article. You get five-option questions at competitive-exam level, a timed test, and a revision plan for what you got wrong.</p>
+
+    <div id="drop" tabindex="0" role="button" aria-label="Upload a document" class="mt-8 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40 p-8 sm:p-12 text-center cursor-pointer hover:border-ultra transition-colors">
+      <input id="file" type="file" accept=".pdf,.docx,.txt,.md" class="hidden">
+      <svg class="w-10 h-10 mx-auto text-ultra" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      <p id="dropText" class="mt-3 font-medium">Drop a file here or click to browse</p>
+      <p class="text-sm text-slate-500 mt-1">PDF, DOCX, TXT or MD · up to {{ max_mb }} MB</p>
+    </div>
+
+    <div class="mt-6 grid sm:grid-cols-2 gap-4">
+      <label class="block text-sm font-medium">Difficulty
+        <select id="level" class="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5">
+          <option value="cgl">SSC CGL / CHSL Tier-2</option>
+          <option value="upsc">UPSC Prelims</option>
+          <option value="adv">Advanced (above Tier-2)</option>
+        </select>
+      </label>
+      <label class="block text-sm font-medium">Number of questions: <span id="countVal">10</span>
+        <input id="count" type="range" min="5" max="30" step="5" value="10" class="mt-3 w-full accent-[#2A4BD7]">
+      </label>
+    </div>
+
+    <p id="err" role="alert" class="hidden mt-5 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 px-4 py-3 text-sm"></p>
+    <button id="go" disabled class="mt-6 w-full sm:w-auto px-7 py-3 rounded-xl bg-ultra text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110">Generate test</button>
+  </section>
+
+  <!-- LOADING -->
+  <section id="v-load" class="hidden text-center py-24">
+    <svg class="spin w-10 h-10 mx-auto text-ultra" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".2" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <p id="loadMsg" class="mt-5 font-head text-xl font-medium">Reading your document…</p>
+    <p class="text-sm text-slate-500 mt-1">Writing questions usually takes 20 to 60 seconds.</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="v-quiz" class="hidden">
+    <div class="sticky top-0 z-10 -mx-4 px-4 py-3 bg-sheet/90 dark:bg-[#0E1320]/90 backdrop-blur">
+      <div class="flex items-center justify-between text-sm">
+        <span id="qCount" class="font-medium"></span>
+        <span id="timer" class="font-head font-bold tabular-nums text-lg"></span>
+      </div>
+      <div class="mt-2 h-1.5 rounded bg-slate-200 dark:bg-slate-800 overflow-hidden"><div id="bar" class="h-full bg-ultra transition-all duration-300" style="width:0"></div></div>
+    </div>
+
+    <div id="qBox" class="mt-6 fade"></div>
+
+    <div class="mt-6 flex items-center justify-between gap-3">
+      <button id="prev" class="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 disabled:opacity-40">Previous</button>
+      <button id="clear" class="text-sm text-slate-500 underline">Clear answer</button>
+      <button id="next" class="px-5 py-2.5 rounded-lg bg-ink dark:bg-slate-100 text-white dark:text-ink font-semibold">Next</button>
+    </div>
+
+    <div class="mt-8">
+      <p class="text-sm font-medium mb-2">Jump to question</p>
+      <div id="palette" class="flex flex-wrap gap-2"></div>
+      <button id="submit" class="mt-6 px-6 py-3 rounded-xl bg-ultra text-white font-semibold hover:brightness-110">Submit test</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="v-res" class="hidden fade">
+    <div id="summary"></div>
+    <h2 class="font-head font-bold text-2xl mt-10">Weak areas and revision plan</h2>
+    <div id="weak" class="mt-4 space-y-4"></div>
+    <h2 class="font-head font-bold text-2xl mt-10">Question review</h2>
+    <div id="review" class="mt-4 space-y-5"></div>
+    <div class="mt-10 flex flex-wrap gap-3">
+      <button id="retake" class="px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700">Retake this test</button>
+      <button id="again" class="px-5 py-2.5 rounded-lg bg-ultra text-white font-semibold">Upload another document</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const L = 'ABCDE', SECS_PER_Q = 72, NEG = 0.25;
+let file = null, T = null, ans = [], idx = 0, endAt = 0, tick = null, startedAt = 0, submitted = false;
+
+function show(id) { ['upload','load','quiz','res'].forEach(v => $('v-' + v).classList.toggle('hidden', v !== id)); window.scrollTo(0, 0); }
+function fail(msg) { const e = $('err'); e.textContent = msg; e.classList.remove('hidden'); }
+
+/* theme + share */
+$('themeBtn').onclick = () => { const d = document.documentElement.classList.toggle('dark'); try { localStorage.theme = d ? 'dark' : 'light'; } catch (e) {} };
+$('shareBtn').onclick = async () => {
+  const data = { title: 'ExamForge', text: 'Turn any document into an exam-grade mock test', url: location.origin };
+  try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(location.origin); $('shareBtn').textContent = 'Link copied'; setTimeout(() => $('shareBtn').textContent = 'Share app', 1800); } } catch (e) {}
+};
+
+/* upload */
+const drop = $('drop');
+function setFile(f) {
+  $('err').classList.add('hidden');
+  if (!f) return;
+  const ext = f.name.split('.').pop().toLowerCase();
+  if (!['pdf','docx','txt','md'].includes(ext)) return fail('Unsupported file type. Use PDF, DOCX, TXT or MD.');
+  if (f.size > {{ max_mb }} * 1024 * 1024) return fail('File is larger than {{ max_mb }} MB.');
+  file = f; $('dropText').textContent = f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)'; $('go').disabled = false;
+}
+drop.onclick = () => $('file').click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); } };
+$('file').onchange = e => setFile(e.target.files[0]);
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('border-ultra'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('border-ultra'); }));
+drop.addEventListener('drop', e => setFile(e.dataTransfer.files[0]));
+$('count').oninput = e => $('countVal').textContent = e.target.value;
+
+$('go').onclick = async () => {
+  $('err').classList.add('hidden'); show('load');
+  const msgs = ['Reading your document…', 'Finding the key concepts…', 'Writing exam-level questions…', 'Checking options and answers…'];
+  let i = 0; const m = setInterval(() => $('loadMsg').textContent = msgs[Math.min(++i, msgs.length - 1)], 9000);
+  const fd = new FormData(); fd.append('file', file); fd.append('level', $('level').value); fd.append('count', $('count').value);
+  try {
+    const r = await fetch('/api/generate', { method: 'POST', body: fd });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Request failed (' + r.status + ')');
+    T = j; startQuiz();
+  } catch (e) { show('upload'); fail(e.message === 'Failed to fetch' ? 'Network problem. Check your connection and retry.' : e.message); }
+  finally { clearInterval(m); }
+};
+
+/* quiz */
+function startQuiz() {
+  ans = new Array(T.questions.length).fill(null); idx = 0; submitted = false;
+  startedAt = Date.now(); endAt = startedAt + T.questions.length * SECS_PER_Q * 1000;
+  clearInterval(tick); tick = setInterval(updateTimer, 500); updateTimer();
+  show('quiz'); render();
+}
+function updateTimer() {
+  const left = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+  $('timer').textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+  $('timer').classList.toggle('text-red-600', left < 60);
+  if (left === 0 && !submitted) finish();
+}
+function render() {
+  const q = T.questions[idx], n = T.questions.length;
+  $('qCount').textContent = 'Question ' + (idx + 1) + ' of ' + n + ' · ' + ans.filter(a => a !== null).length + ' answered';
+  $('bar').style.width = (ans.filter(a => a !== null).length / n * 100) + '%';
+  $('qBox').innerHTML = '<p class="font-paper text-xl sm:text-2xl leading-relaxed whitespace-pre-line">' + esc(q.question) + '</p><div class="mt-6 space-y-3">' +
+    q.options.map((o, i) => '<button data-i="' + i + '" class="opt w-full text-left flex items-start gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 ' + (ans[idx] === i ? 'sel' : '') + '"><span class="bubble">' + L[i] + '</span><span class="pt-1 font-paper text-lg leading-snug">' + esc(o) + '</span></button>').join('') + '</div>';
+  $('qBox').classList.remove('fade'); void $('qBox').offsetWidth; $('qBox').classList.add('fade');
+  $('qBox').querySelectorAll('.opt').forEach(b => b.onclick = () => { ans[idx] = +b.dataset.i; render(); });
+  $('prev').disabled = idx === 0; $('next').textContent = idx === n - 1 ? 'Review' : 'Next';
+  $('palette').innerHTML = T.questions.map((_, i) => '<button data-j="' + i + '" class="w-9 h-9 rounded-lg text-sm font-medium border ' + (i === idx ? 'border-ultra ring-2 ring-ultra/40 ' : 'border-slate-300 dark:border-slate-700 ') + (ans[i] !== null ? 'bg-ultra text-white' : 'bg-white dark:bg-slate-900') + '">' + (i + 1) + '</button>').join('');
+  $('palette').querySelectorAll('button').forEach(b => b.onclick = () => { idx = +b.dataset.j; render(); });
+}
+$('prev').onclick = () => { if (idx > 0) { idx--; render(); } };
+$('next').onclick = () => { if (idx < T.questions.length - 1) { idx++; render(); } else $('submit').scrollIntoView({ behavior: 'smooth' }); };
+$('clear').onclick = () => { ans[idx] = null; render(); };
+$('submit').onclick = () => {
+  const open = ans.filter(a => a === null).length;
+  if (!open || confirm(open + ' question(s) unanswered. Submit anyway?')) finish();
+};
+document.addEventListener('keydown', e => {
+  if ($('v-quiz').classList.contains('hidden') || ['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (e.key === 'ArrowRight') $('next').click(); else if (e.key === 'ArrowLeft') $('prev').click();
+  else if ('abcde'.includes(e.key.toLowerCase()) && e.key.length === 1) { ans[idx] = 'abcde'.indexOf(e.key.toLowerCase()); render(); }
+});
+
+/* results */
+function finish() {
+  submitted = true; clearInterval(tick);
+  const secs = Math.round((Math.min(Date.now(), endAt) - startedAt) / 1000), n = T.questions.length;
+  let ok = 0, bad = 0; const byTopic = {};
+  T.questions.forEach((q, i) => {
+    const t = byTopic[q.topic] = byTopic[q.topic] || { total: 0, wrong: 0, qs: [] };
+    t.total++;
+    if (ans[i] === q.correct_index) ok++;
+    else { t.wrong++; t.qs.push(i); if (ans[i] !== null) bad++; }
+  });
+  const skipped = n - ok - bad, marks = Math.max(ok - bad * NEG, -n), pct = Math.round(ok / n * 100);
+  const tone = pct >= 75 ? 'Strong result.' : pct >= 50 ? 'Decent base, with clear gaps to close.' : 'Plenty to work on, and the plan below shows where to start.';
+  $('summary').innerHTML = '<div class="rounded-2xl bg-ink text-white dark:bg-slate-900 dark:border dark:border-slate-800 p-6 sm:p-8">' +
+    '<p class="text-slate-300 text-sm">' + esc(T.title) + '</p>' +
+    '<p class="font-head font-bold text-5xl mt-2">' + ok + ' / ' + n + ' <span class="text-xl font-medium text-slate-300">(' + pct + '%)</span></p>' +
+    '<p class="mt-2 text-slate-200">' + tone + '</p>' +
+    '<div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">' +
+    [['Correct', ok], ['Wrong', bad], ['Skipped', skipped], ['Net marks (−' + NEG + ' per wrong)', marks.toFixed(2)]].map(x => '<div><p class="text-slate-400">' + x[0] + '</p><p class="font-head font-bold text-2xl">' + x[1] + '</p></div>').join('') +
+    '</div><p class="mt-5 text-sm text-slate-400">Time taken: ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's</p></div>' +
+    (T.truncated ? '<p class="mt-3 text-sm text-slate-500">Your document was long, so questions were drawn from sections sampled across it.</p>' : '');
+
+  const weak = Object.entries(byTopic).filter(([, t]) => t.wrong).sort((a, b) => (a[1].total - a[1].wrong) / a[1].total - (b[1].total - b[1].wrong) / b[1].total);
+  $('weak').innerHTML = weak.length ? weak.map(([name, t]) => {
+    const info = T.topics.find(x => x.name === name) || {}, acc = Math.round((t.total - t.wrong) / t.total * 100);
+    const list = (arr) => arr && arr.length ? '<ul class="mt-1 list-disc pl-5 space-y-1">' + arr.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '';
+    return '<article class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">' +
+      '<div class="flex items-start justify-between gap-3"><h3 class="font-head font-bold text-lg">' + esc(name) + '</h3><span class="text-sm shrink-0 px-2.5 py-1 rounded-full ' + (acc < 50 ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300') + '">' + acc + '% · ' + t.wrong + ' of ' + t.total + ' missed</span></div>' +
+      '<div class="mt-2 h-1.5 rounded bg-slate-200 dark:bg-slate-800"><div class="h-full rounded bg-ultra" style="width:' + acc + '%"></div></div>' +
+      (info.key_points && info.key_points.length ? '<p class="mt-4 text-sm font-semibold">Study notes</p><div class="text-sm">' + list(info.key_points) + '</div>' : '') +
+      (info.revision_tips && info.revision_tips.length ? '<p class="mt-4 text-sm font-semibold">How to revise</p><div class="text-sm">' + list(info.revision_tips) + '</div>' : '') +
+      '<p class="mt-4 text-sm text-slate-500">Revisit questions: ' + t.qs.map(i => i + 1).join(', ') + '</p></article>';
+  }).join('') : '<p class="rounded-2xl border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 p-5">No weak areas found. Try a harder difficulty or a new document.</p>';
+
+  $('review').innerHTML = T.questions.map((q, i) => {
+    const u = ans[i], right = u === q.correct_index;
+    return '<article class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">' +
+      '<p class="text-sm mb-2 ' + (right ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') + ' font-medium">Q' + (i + 1) + ' · ' + (u === null ? 'Skipped' : right ? 'Correct' : 'Incorrect') + ' · ' + esc(q.topic) + '</p>' +
+      '<p class="font-paper text-lg leading-relaxed whitespace-pre-line">' + esc(q.question) + '</p><div class="mt-4 space-y-2">' +
+      q.options.map((o, k) => '<div class="opt flex items-start gap-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 p-3 ' + (k === q.correct_index ? 'ok' : k === u ? 'bad' : '') + '"><span class="bubble">' + L[k] + '</span><span class="pt-1 font-paper">' + esc(o) + '</span></div>').join('') +
+      '</div>' + (q.explanation ? '<p class="mt-4 text-sm text-slate-600 dark:text-slate-300"><b>Why:</b> ' + esc(q.explanation) + '</p>' : '') + '</article>';
+  }).join('');
+  show('res');
+}
+$('retake').onclick = startQuiz;
+$('again').onclick = () => { file = null; T = null; $('file').value = ''; $('dropText').textContent = 'Drop a file here or click to browse'; $('go').disabled = true; show('upload'); };
+</script>
+</body>
+</html>
